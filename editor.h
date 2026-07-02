@@ -1,11 +1,19 @@
+#ifndef EDITOR_H
+#define EDITOR_H
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 /* Initial capacity for any buffer that would require reallocation */
 #define INITIAL_CAPACITY 64
+#define RENDER_BUF_SIZE 65536
 
 typedef enum BUFFER {
     ORIGINAL,
@@ -35,6 +43,7 @@ typedef struct undo_stack {
     size_t capacity;
 } undo_stack_t;
 
+/* Array of pieces called piece table with other fields */
 typedef struct piece_table {
     piece_t *pieces;
     char *original_buffer;
@@ -52,6 +61,10 @@ typedef struct editor {
     char *filename;
     int dirty;
     undo_stack_t undo_stack;
+    int screen_rows;    /* terminal height */
+    int screen_cols;    /* terminal width */
+    int row_offset;
+    int col_offset;
 } editor_t;
 
 piece_table_t *piece_table_create(const char *content, size_t length);
@@ -59,4 +72,11 @@ int piece_table_insert(piece_table_t *table, size_t offset, const char *text, si
 int piece_table_delete(piece_table_t *table, size_t offset, size_t length);
 char *piece_table_get_content(piece_table_t *table);
 void piece_table_destroy(piece_table_t *table);
+editor_t *editor_init(const char *filename);
+int editor_save(editor_t *editor);
+void editor_destroy(editor_t *editor);
+size_t cursor_to_offset(editor_t *editor);
 
+
+
+#endif  /* EDITOR_H */
