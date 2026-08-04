@@ -6,8 +6,8 @@
 
 void process_keypress(editor_t *editor) {
     int key_press;
-    char c;
-    size_t offset, prev_line_len;
+    char c, *content;
+    size_t offset, prev_line_len, doc_len;
 
     key_press = read_keypress();
     switch (key_press) {
@@ -59,6 +59,16 @@ void process_keypress(editor_t *editor) {
                	editor->dirty = 1;
             }
             break;
+        case KEY_DELETE:
+        	content = piece_table_get_content(&editor->table);
+        	doc_len = content ? strlen(content) : 0;
+         	free(content);
+         	offset = cursor_to_offset(editor);
+          	if (offset < doc_len) {
+         		piece_table_delete(&editor->table, offset, 1);
+         		editor->dirty = 1;
+           	}
+       		break;
         case '\r':
        		offset = cursor_to_offset(editor);
         	piece_table_insert(&editor->table, offset, "\n", 1);
