@@ -7,7 +7,7 @@
 void process_keypress(editor_t *editor) {
     int key_press;
     char c;
-    size_t offset, line_len;
+    size_t offset, prev_line_len;
 
     key_press = read_keypress();
     switch (key_press) {
@@ -51,11 +51,12 @@ void process_keypress(editor_t *editor) {
                 piece_table_delete(&editor->table, offset - 1, 1);
                 editor->cursor.column--;
                 editor->dirty = 1;
-            } else {
-           		line_len = get_line_length(editor, editor->cursor.line - 1);
+            } else if (editor->cursor.line > 0) {
+           		prev_line_len = get_line_length(editor, editor->cursor.line - 1);
             	piece_table_delete(&editor->table, offset - 1, 1);
              	editor->cursor.line--;
-              	editor->cursor.column = line_len;
+              	editor->cursor.column = prev_line_len;
+               	editor->dirty = 1;
             }
             break;
         case '\r':
