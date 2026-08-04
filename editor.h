@@ -1,11 +1,11 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
+#include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -13,7 +13,6 @@
 
 /* Initial capacity for any buffer that would require reallocation */
 #define INITIAL_CAPACITY 64
-#define RENDER_BUF_SIZE 65536
 
 typedef enum BUFFER {
     ORIGINAL,
@@ -76,7 +75,6 @@ editor_t *editor_init(const char *filename);
 int editor_save(editor_t *editor);
 void editor_destroy(editor_t *editor);
 size_t cursor_to_offset(editor_t *editor);
-
 
 
 #endif  /* EDITOR_H */

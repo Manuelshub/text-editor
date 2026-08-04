@@ -1,9 +1,10 @@
 #include "editor.h"
-#include "terminal_mod.h"
-#include <unistd.h>
+#include "renderer.h"
+#include <fcntl.h>
+
 
 /*
- * editor_init - initiailize an editor struct
+ * editor_init - initiailize an editor and returns a pointer to an editor struct
  * 
  * filename: the name of the file to open in the editor.
  * Return: A pointer to the editor structure.
@@ -12,7 +13,7 @@ editor_t *editor_init(const char *filename) {
     char *buffer;
     cursor_t cursor;
     editor_t *editor;
-    int open_fd;
+    int open_fd, s_flags;
     piece_table_t *table;
     struct stat s_buff;
     ssize_t bytes_read, total_read;
@@ -20,12 +21,21 @@ editor_t *editor_init(const char *filename) {
 
     editor = malloc(sizeof(editor_t));
     if (editor == NULL) return NULL;
-    
+
+    s_flags = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
     if (filename != NULL) {
         if (stat(filename, &s_buff) == -1) {
-            perror("stat");
-            free(editor);
-            return NULL;
+        	if (errno == ENOENT) {
+         		if (creat(filename, s_flags) == -1) {
+           			perror("creat");
+            		free(editor);
+              		return NULL;
+           		}
+         	} else {
+         		perror("stat");
+            	free(editor);
+             	return NULL;
+          	}
         }
         open_fd = open(filename, O_RDONLY);
         if (open_fd == -1) {
@@ -80,6 +90,12 @@ editor_t *editor_init(const char *filename) {
     cursor.column = 0;
     editor->dirty = 0;
     editor->table = *table;
+    /* Just debugging */
+    fprintf(stderr, "pieces_count: %zu\n", editor->table.pieces_count);
+    fprintf(stderr, "original_buffer: %s\n",
+    	editor->table.original_buffer ? editor->table.original_buffer : "NULL");
+    fprintf(stderr, "append_buffer: %s\n", editor->table.append_buffer);
+
     editor->cursor = cursor;
     if (get_window_size(&editor->screen_rows, &editor->screen_cols) == -1) {
         editor_destroy(editor);
