@@ -22,12 +22,20 @@ void process_keypress(editor_t *editor) {
             editor_save(editor);
             break;
         case KEY_UP:
-            if (editor->cursor.line > 0)
+            if (editor->cursor.line > 0) {
                 editor->cursor.line--;
+                prev_line_len = get_line_length(editor, editor->cursor.line);
+                if (editor->cursor.column > prev_line_len)
+                	editor->cursor.column = prev_line_len;
+           	}
             break;
         case KEY_DOWN:
-            if (editor->cursor.line < get_document_line_count(editor))
+            if (editor->cursor.line < get_document_line_count(editor)) {
                 editor->cursor.line++;
+                prev_line_len = get_line_length(editor, editor->cursor.line);
+                if (editor->cursor.column > prev_line_len)
+               		editor->cursor.column = prev_line_len;
+            }
             break;
         case KEY_LEFT:
             if (editor->cursor.column > 0)
