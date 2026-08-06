@@ -1,5 +1,11 @@
 #include "editor.h"
 
+/* 
+ * get_document_line_count - get the number of lines in the document
+ * 
+ * editor: pointer to an editor struct
+ * Return: the number of lines in the document.
+ */
 size_t get_document_line_count(editor_t *editor) {
     char *content;
     size_t count, i;
@@ -16,6 +22,14 @@ size_t get_document_line_count(editor_t *editor) {
     return count;
 }
 
+/*
+ * get_line_length - calculatest the length of a line in the document
+ * 
+ * editor: pointer to an editor struct
+ * line: the line to be calculated
+ * 
+ * Return: the length of that line
+ */
 size_t get_line_length(editor_t *editor, size_t line) {
     char *content, *line_start, *new_line;
     size_t current_line, len;
