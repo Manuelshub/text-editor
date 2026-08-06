@@ -9,6 +9,7 @@
 void buffer_append(char *buf, int *buf_len, const char *str, int len);
 int get_window_size(int *rows, int *cols);
 void editor_draw_rows(editor_t *editor, char *buf, int *buf_len);
+void editor_draw_status_bar(editor_t *editor, char *buf, int *buf_len);
 void editor_refresh_screen(editor_t *editor);
 
 #endif /* RENDERER_H */
