@@ -64,6 +64,11 @@ typedef struct editor {
     int screen_cols;    /* terminal width */
     int row_offset;
     int col_offset;
+    char status_msg[512];
+    int search_active;
+    size_t match_line;
+    size_t match_len;
+    size_t match_col;
 } editor_t;
 
 piece_table_t *piece_table_create(const char *content, size_t length);
@@ -75,6 +80,8 @@ editor_t *editor_init(const char *filename);
 int editor_save(editor_t *editor);
 void editor_destroy(editor_t *editor);
 size_t cursor_to_offset(editor_t *editor);
+void offset_to_cursor(editor_t *editor, size_t offset);
+void editor_search(editor_t *editor);
 
 
 #endif  /* EDITOR_H */

@@ -1,6 +1,6 @@
 #include "editor.h"
 #include "renderer.h"
-#include <fcntl.h>
+#include "terminal_mod.h"
 
 
 /*
@@ -103,6 +103,11 @@ editor_t *editor_init(const char *filename) {
     }
     editor->row_offset = 0;
     editor->col_offset = 0;
+    editor->status_msg[0] = '\0';
+    editor->search_active = 0;
+    editor->match_line = 0;
+    editor->match_len = 0;
+    editor->match_col = 0;
 
     undo_stack.entries = NULL;
     undo_stack.top = 0;
@@ -173,4 +178,64 @@ void editor_destroy(editor_t *editor) {
 
     free(editor->filename);
     free(editor);
+}
+
+void editor_search(editor_t *editor) {
+	char query[256], *content, *match;
+	int query_len, key;
+	size_t saved_line, saved_col, offset;
+
+	query[0] = '\0';
+	query_len = 0;
+	saved_line = editor->cursor.line;
+	saved_col = editor->cursor.column;
+	while (1) {
+		key = read_keypress();
+		if (key == '\x1b') {
+            /* escape — restore cursor */
+            editor->cursor.line = saved_line;
+            editor->cursor.column = saved_col;
+            editor->status_msg[0] = '\0';
+            editor->search_active = 0;
+            break;
+        } else if (key == '\r') {
+            /* enter — confirm and exit search */
+            editor->status_msg[0] = '\0';
+            break;
+        } else if (key == KEY_BACKSPACE) {
+            if (query_len > 0)
+                query[--query_len] = '\0';
+        } else if (key >= 32 && key < 127) {
+            if (query_len < 255) {
+                query[query_len++] = (char)key;
+                query[query_len] = '\0';
+            }
+        }
+		/* draw search prompt in status bar */
+		snprintf(editor->status_msg, sizeof(editor->status_msg),
+			"Search: %s", query);
+		
+	 	/* search on every keystroke */
+        if (query_len > 0) {
+            content = piece_table_get_content(&editor->table);
+            if (content) {
+                match = strstr(content, query);
+                if (match) {
+                    offset = match - content;
+                    offset_to_cursor(editor, offset);
+                    editor->search_active = 1;
+                    editor->match_line = editor->cursor.line;
+                    editor->match_col = editor->cursor.column;
+                    editor->match_len = query_len;
+                } else {
+                    snprintf(editor->status_msg, sizeof(editor->status_msg),
+                    	"Search: %s [No match]", query);
+                }
+                free(content);
+            }
+        } else {
+            editor->search_active = 0;
+        }
+        editor_refresh_screen(editor);
+	}
 }
