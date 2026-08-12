@@ -39,6 +39,8 @@ make build
 - Page Up/ Page Down - Scroll through document
 - Ctrl + q - Quit the editor
 - Ctrl + s - Save the file
+- Status bar
+- Search with highlighting
 
 ## Project structure
 ```bash
