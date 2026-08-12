@@ -21,6 +21,9 @@ void process_keypress(editor_t *editor) {
         case CTRL_KEY('s'):
             editor_save(editor);
             break;
+        case CTRL_KEY('f'):
+       		editor_search(editor);
+         	break;
         case KEY_UP:
             if (editor->cursor.line > 0) {
                 editor->cursor.line--;

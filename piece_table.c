@@ -274,8 +274,8 @@ int piece_table_delete(piece_table_t *table, size_t offset, size_t length) {
 }
 
 size_t cursor_to_offset(editor_t *editor) {
-    size_t i, offset, curr_line;
     char *content;
+    size_t i, offset, curr_line;
 
     content = piece_table_get_content(&editor->table);
     if (content == NULL) return 0;
@@ -292,4 +292,23 @@ size_t cursor_to_offset(editor_t *editor) {
     free(content);
 
     return offset;
+}
+
+void offset_to_cursor(editor_t *editor, size_t offset) {
+	char *content;
+	size_t i, line, col;
+
+	content = piece_table_get_content(&editor->table);
+	if (content == NULL) return;
+
+	line = 0;
+	col = 0;
+	for (i = 0; i < offset; i++) {
+		if (content[i] == '\n') {
+			line += 1;
+			col = 0;
+		} else col++;
+	}
+	editor->cursor.line = line;
+	editor->cursor.column = col;
 }
