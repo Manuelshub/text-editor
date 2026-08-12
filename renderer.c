@@ -36,7 +36,8 @@ void editor_draw_rows(editor_t *editor, char *buf, int *buf_len) {
     char *content, *newline, *line_start;
     char *line_starts[5000], *line;
     int line_lengths[5000];
-    int total_lines, i, doc_line, line_len;
+    int total_lines, i, doc_line, line_len, pre_len;
+    int match_draw_len, post_len;
 
     content = piece_table_get_content(&editor->table);
     if (content == NULL) return;
@@ -69,7 +70,30 @@ void editor_draw_rows(editor_t *editor, char *buf, int *buf_len) {
            		line_len = 0;
             if (line_len > editor->screen_cols)
                 line_len = editor->screen_cols;
-            buffer_append(buf, buf_len, line, line_len);
+
+            if (editor->search_active && (size_t)doc_line == editor->match_line) {
+            	pre_len = (int)editor->match_col - editor->col_offset;
+             	if (pre_len < 0) pre_len = 0;
+              	if (pre_len > line_len) pre_len = line_len;
+
+               	match_draw_len = (int)editor->match_len;
+                if (pre_len + match_draw_len > line_len) {
+              		match_draw_len = line_len - pre_len;
+                }
+
+                post_len = line_len - pre_len - match_draw_len;
+
+                /* draw before match */
+                buffer_append(buf, buf_len, line, pre_len);
+                /* draw match highlighted */
+                buffer_append(buf, buf_len, "\x1b[7m", 4);
+                buffer_append(buf, buf_len, line + pre_len, match_draw_len);
+                buffer_append(buf, buf_len, "\x1b[m", 3);
+                /* draw after match */
+                buffer_append(buf, buf_len, line + pre_len + match_draw_len, post_len);
+            }
+            else 
+            	buffer_append(buf, buf_len, line, line_len);
         }
         else {
             buf[*buf_len] = '~';
@@ -124,8 +148,21 @@ void editor_refresh_screen(editor_t *editor) {
  */
 void editor_draw_status_bar(editor_t *editor, char *buf, int *buf_len) {
 	char status[256], rstatus[64];
-	int len, rlen;
+	int len, rlen, st_len;
 
+	if (editor->status_msg[0] != '\0') {
+		buffer_append(buf, buf_len, "\x1b[7m", 4);
+		st_len = strlen(editor->status_msg);
+		if (st_len > editor->screen_cols)
+			st_len = editor->screen_cols;
+		buffer_append(buf, buf_len, editor->status_msg, st_len);
+		while (st_len < editor->screen_cols) {
+			buffer_append(buf, buf_len, " ", 1);
+			st_len++;
+		}
+		buffer_append(buf, buf_len, "\x1b[m", 3);
+		return; /* Skip normal status bar */
+	}
 	/* Turn on reverse video */
 	buffer_append(buf, buf_len, "\x1b[7m", 4);
 
