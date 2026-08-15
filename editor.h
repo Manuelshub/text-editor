@@ -82,6 +82,7 @@ void editor_destroy(editor_t *editor);
 size_t cursor_to_offset(editor_t *editor);
 void offset_to_cursor(editor_t *editor, size_t offset);
 void editor_search(editor_t *editor);
+char *editor_prompt_filename(editor_t *editor);
 
 
 #endif  /* EDITOR_H */

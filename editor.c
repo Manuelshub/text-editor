@@ -2,7 +2,6 @@
 #include "renderer.h"
 #include "terminal_mod.h"
 
-
 /*
  * editor_init - initiailize an editor and returns a pointer to an editor struct
  * 
@@ -90,12 +89,6 @@ editor_t *editor_init(const char *filename) {
     cursor.column = 0;
     editor->dirty = 0;
     editor->table = *table;
-    /* Just debugging */
-    fprintf(stderr, "pieces_count: %zu\n", editor->table.pieces_count);
-    fprintf(stderr, "original_buffer: %s\n",
-    	editor->table.original_buffer ? editor->table.original_buffer : "NULL");
-    fprintf(stderr, "append_buffer: %s\n", editor->table.append_buffer);
-
     editor->cursor = cursor;
     if (get_window_size(&editor->screen_rows, &editor->screen_cols) == -1) {
         editor_destroy(editor);
@@ -129,9 +122,11 @@ int editor_save(editor_t *editor) {
     if (content == NULL) return -1;
 
     if (editor->filename == NULL) {
-        fprintf(stderr, "Case when the filename to write is not specified\n");
-        free(content);
-        return -1;
+    	editor->filename = editor_prompt_filename(editor);
+     	if (editor->filename == NULL) {
+        	free(content);
+         	return -1;
+      	}
     }
     open_fd = open(editor->filename, flags, 0644);
     if (open_fd == -1) {
@@ -238,4 +233,37 @@ void editor_search(editor_t *editor) {
         }
         editor_refresh_screen(editor);
 	}
+}
+
+char *editor_prompt_filename(editor_t *editor) {
+	char filename[256];
+	int filename_len, key;
+
+	filename[0] = '\0';
+	filename_len = 0;
+
+	while (1) {
+		snprintf(editor->status_msg, sizeof(editor->status_msg),
+			"Save as: %s", filename);
+		editor_refresh_screen(editor);
+
+		key = read_keypress();
+		if (key == '\x1b') {
+			editor->status_msg[0] = '\0';
+			return NULL;
+		} else if (key == '\r') {
+			editor->status_msg[0] = '\0';
+			if (filename_len > 0)
+				return strdup(filename);
+		} else if (key == KEY_BACKSPACE) {
+			if (filename_len > 0)
+				filename[--filename_len] = '\0';
+		} else if (key >= 32 && key < 127) {
+			if (filename_len < 255) {
+				filename[filename_len++] = (char)key;
+				filename[filename_len] = '\0';
+			}
+		}
+	}
+	return NULL;
 }
